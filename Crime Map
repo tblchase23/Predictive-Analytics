@@ -1,0 +1,26 @@
+library(ggplot2)
+library(ggmap)
+library(dplyr)
+
+crimedataset <- read.csv("C:/Users/tkdch/OneDrive/Desktop/Intro.Data.Science/week4_Lab/data/crimeInSYR.csv")
+head(crimedataset)
+summary(crimedataset)
+
+crimedataset$type <- crimedataset$Aggravated.assault
+crimedataset$address <- crimedataset$X800.block.Avery.Av
+crimedataset$city <- crimedataset$Syracuse
+crimedataset$date <- crimedataset$X12.20.15
+crimedataset$address_complete<-paste(crimedataset$address,crimedataset$city, sep = " ") 
+crimedataset <- select(crimedataset,-1)
+
+latlon<-geocode(crimedataset$address_complete)
+syr<-geocode("syracuse university, syracuse, ny")
+syr.map<-get_map(location=syr,zoom = 11)
+mapSimple <- ggmap(syr.map)
+mapSimple
+
+crimemap<-mapSimple + geom_point(data =latlon, aes(x = lon, y = lat),colour = "blue", size = 1)
+crimemap
+
+crimemap_dense <- mapSimple + geom_density_2d(data = latlon, aes(x = lon, y = lat))
+crimemap_dense

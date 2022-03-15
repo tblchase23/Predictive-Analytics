@@ -1,0 +1,18 @@
+library(ggplot2)
+mtcars<-mtcars
+ggplot(mtcars, aes(mpg)) +
+  geom_histogram(binwidth = 3)
+  
+ggplot(mtcars, aes(x = factor(cyl), y = mpg)) +
+  geom_boxplot()
+  
+ggplot(mtcars, aes(wt, mpg, color = am)) +
+  geom_line(aes(group = am))
+  
+carnames <- rownames(mtcars)
+ggplot(mtcars, aes(x=carnames, y = wt)) +
+  geom_bar(stat='identity') +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+  
+ ggplot(mtcars, aes(x=mpg, y=wt, color = qsec, size =qsec)) +
+  geom_point() 

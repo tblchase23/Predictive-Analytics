@@ -1,0 +1,29 @@
+library(ggplot2)
+library(readxl)
+
+myDF<-as.data.frame(readxl::read_excel("./data/mlr01.xls"))
+colnames(myDF) <- c("nFawn", "adultPop", "precip", "winter")
+
+head(myDF)
+
+ggplot(myDF, aes(x = adultPop, y = nFawn)) +
+  geom_point()
+  
+ggplot(myDF, aes(x = adultPop, y = nFawn)) +
+  geom_point(aes(size = precip, color = winter))
+  
+ggplot(myDF, aes(x = precip, y = nFawn)) +
+  geom_point()  
+  
+ggplot(myDF, aes(x = precip, y = nFawn)) +
+  geom_point(aes(size = adultPop, color = winter))  
+  
+ggplot(myDF, aes(x = winter, y = nFawn)) +
+  geom_point()
+  
+ggplot(myDF, aes(x = winter, y = nFawn)) +
+  geom_point(aes(size = precip, color = adultPop))
+  
+m1<-lm(nFawn ~ adultPop, data = myDF)
+m2<-lm(nFawn ~ adultPop + precip, data = myDF)
+m3<-lm(nFawn ~ adultPop + precip + winter, data = myDF)

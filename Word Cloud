@@ -1,0 +1,22 @@
+library("tm")
+library("wordcloud")
+
+wordcloud_start<-read.csv("data/sample.csv", stringsAsFactors = F)
+wordcloud_start<-wordcloud_start$text
+wordcloud_source<- VectorSource(wordcloud_start)
+wordcloud_corpus <- Corpus(wordcloud_source)
+
+
+wordcloud_corpus <- tm_map(wordcloud_corpus,content_transformer(tolower))
+wordcloud_corpus <- tm_map(wordcloud_corpus, removePunctuation)
+wordcloud_corpus <- tm_map(wordcloud_corpus, removeNumbers)
+wordcloud_corpus <- tm_map(wordcloud_corpus, removeWords, stopwords('en'))
+
+more_stops <- c("can", "just", stopwords("en"))
+wordcloud_corpus <- tm_map(wordcloud_corpus, removeWords, more_stops)
+
+cloud_colors = brewer.pal(5, "Accent")
+wordcloud_tdm <-TermDocumentMatrix(wordcloud_corpus)
+wordcloud_matrix<- as.matrix(wordcloud_tdm)
+wordfreq <- sort(rowSums(wordcloud_matrix), decreasing = TRUE)
+Wordcloud<-wordcloud(names(wordfreq), wordfreq, max.words = 50, colors = cloud_colors)

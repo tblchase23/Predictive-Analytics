@@ -1,0 +1,72 @@
+library("gdata")
+library(ggmap)
+library(ggplot2)
+library("openxlsx")
+library(dplyr)
+install.packages("remotes")
+library(remotes)
+install_version("zipcode", "1.0")
+library(zipcode)
+data(zipcode)
+mydata <-read.xlsx("C:/Users/tkdch/OneDrive/Desktop/Intro.Data.Science/MedianZIP-3.xlsx")
+
+mydata<-data.frame(mydata)
+mydata$zip <- as.numeric(mydata$Zip, na.rm=TRUE)
+mydata$Median <- as.numeric(mydata$Median,na.rm=TRUE)
+mydata$Mean <- as.numeric(mydata$Mean,na.rm=TRUE)
+mydata$Pop <- as.numeric(mydata$Pop, na.rm=TRUE)
+
+mydata$zip<-clean.zipcodes(mydata$zip)
+dfNew<- merge(mydata,zipcode,by.x = "zip")
+
+dfNew<-dfNew[!(dfNew$state == "HI" | dfNew$state == "AK"),]
+dfSimple<- dfNew %>%
+  group_by(state) %>%
+  summarize(meanIncome = mean(Median), MeanPop = mean(Pop))
+  
+  dfSimple$stateName<- state.name[match(dfSimple$state,state.abb)]
+dfSimple$stateName<-tolower(dfSimple$stateName)
+
+us<- map_data("state")
+map_simple<- ggplot(dfSimple, aes(map_id = stateName))
+map_simple<- map_simple+ geom_map( map = us, aes(fill =meanIncome))
+map_simple <- map_simple + expand_limits(x = us$long, y = us$lat)
+map_simple <- map_simple+ coord_map() + ggtitle ("average median income of the US")
+map_simple
+
+map_pop<- ggplot(dfSimple, aes(map_id = stateName))
+map_pop<- map_pop+ geom_map( map = us, aes(fill =MeanPop))
+map_pop <- map_pop + expand_limits(x = us$long, y = us$lat)
+map_pop <- map_pop + coord_map() + ggtitle ("State Population")
+map_pop
+
+api<-"AIzaSyAe-e4uJCuNDYOzbuXAfOHZp5Bvlg0awk8"
+register_google(key=api)
+dfNew$stateName<- state.name[match(dfNew$state,state.abb)]
+dfNew$stateName<-tolower(dfNew$stateName)
+dfNew$zip <- as.numeric(dfNew$zip)
+map_zip<- ggplot(dfNew, aes(map_id = stateName))
+map_zip<- map_zip+ geom_map( map = us, color = "black")
+map_zip <- map_zip + coord_map() + ggtitle ("Median Value") 
+map_zip <- map_zip + geom_point(aes (x =longitude, y= latitude, color = Median))
+map_zip
+
+map_dense<- ggplot(dfNew, aes(map_id = stateName))
+map_dense<- map_pop+ geom_map( map = us, color = "black")
+map_dense<- map_pop + coord_map() + ggtitle ("Median Value") 
+map_dense<- map_pop + geom_point(aes (x =longitude, y= latitude, color = Median))
+map_pop
+map_dense <- map_pop + stat_density2d(data =dfNew, aes(x = longitude, y = latitude), contour_var = "ndensity")
+map_dense
+
+latlon <-geocode("NYC, ny")
+mapZipZoomed <- map_zip + geom_point(aes(x = latlon$lon, y=latlon$lat), color = "darkred", size = 3)
+
+mapZipZoomed <- mapZipZoomed + xlim(latlon$lon-10, latlon$lon+10) +ylim(latlon$lat-10,latlon$lat+10)+coord_map()
+mapZipZoomed
+
+mapDZoomed<-map_dense + geom_point(aes(x =latlon$lon, y = latlon$lat), color = "darkred", size = 3)
+mapDzoomed <- mapDZoomed + xlim(latlon$lon-10,latlon$lon+10) + ylim(latlon$lat-10,latlon$lat+10) + coord_map()
+
+mapDZoomed
+
